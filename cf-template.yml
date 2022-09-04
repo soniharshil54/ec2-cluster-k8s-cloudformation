@@ -135,8 +135,10 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
             #!/bin/bash
-            yum install httpd -y
-            service httpd start  
+            sudo apt update	
+            sudo apt install apache2 -y
+            apache2 -version
+            sudo systemctl status apache2 
             echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html
 
   EC2InstanceWorker1:
@@ -156,8 +158,10 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
             #!/bin/bash
-            yum install httpd -y
-            service httpd start  
+            sudo apt update	
+            sudo apt install apache2 -y
+            apache2 -version
+            sudo systemctl status apache2  
             echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html
 
   EC2InstanceWorker2:
@@ -177,8 +181,10 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
             #!/bin/bash
-            yum install httpd -y
-            service httpd start  
+            sudo apt update	
+            sudo apt install apache2 -y
+            apache2 -version
+            sudo systemctl status apache2  
             echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html                    
 Outputs:
   PublicIpMaster:
