@@ -1,0 +1,206 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  This template deploys a VPC, with a pair of public and private subnets spread
+  across two Availability Zones. It deploys an internet gateway, with a default
+  route on the public subnets, a Linux t2.micro Instance with Security Group with open HTTP access. 
+Mappings:
+  RegionMap:
+    us-east-2:
+     "AMI": "ami-02f3416038bdb17fb"  
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16 
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+        - Key: Name
+          Value: Heathen sharks VPC
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Heathen sharks IGW
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Heathen sharks Public Subnet (AZ1)
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Heathen sharks Public Subnet (AZ2)
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: 10.0.11.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Heathen sharks Private Subnet (AZ1)
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: 10.0.12.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Heathen sharks Private Subnet (AZ2)
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Heathen sharks Public Routes
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+      
+  SharksSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable HTTP and SSH from 0.0.0.0/0
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0  
+      VpcId: !Ref VPC
+
+  EC2InstanceMaster:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      InstanceType: t2.medium
+      KeyName: sharks
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds: 
+        - !Ref SharksSecurityGroup
+      Tags:
+       - Key: Name
+         Value: Shark EC2 Master
+       - Key: Role
+         Value: Master
+      UserData:
+        Fn::Base64: !Sub |
+            #!/bin/bash
+            yum install httpd -y
+            service httpd start  
+            echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html
+
+  EC2InstanceWorker1:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      InstanceType: t2.small
+      KeyName: sharks
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds: 
+        - !Ref SharksSecurityGroup
+      Tags:
+       - Key: Name
+         Value: Shark EC2 Worker 1
+       - Key: Role
+         Value: Worker   
+      UserData:
+        Fn::Base64: !Sub |
+            #!/bin/bash
+            yum install httpd -y
+            service httpd start  
+            echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html
+
+  EC2InstanceWorker2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      InstanceType: t2.small
+      KeyName: sharks
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds: 
+        - !Ref SharksSecurityGroup
+      Tags:
+       - Key: Name
+         Value: Shark EC2 Worker 2
+       - Key: Role
+         Value: Worker   
+      UserData:
+        Fn::Base64: !Sub |
+            #!/bin/bash
+            yum install httpd -y
+            service httpd start  
+            echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html                    
+Outputs:
+  PublicIpMaster:
+    Description: EC2 Instance Master Public Ip
+    Value: !GetAtt EC2InstanceMaster.PublicIp
+
+  PrivateIpMaster:
+    Description: EC2 Instance Master Private Ip
+    Value: !GetAtt EC2InstanceMaster.PrivateIp
+
+  PublicIpWorker1:
+    Description: EC2 Instance Worker1 Public Ip
+    Value: !GetAtt EC2InstanceWorker1.PublicIp
+
+  PrivateIpWorker1:
+    Description: EC2 Instance Worker1 Private Ip
+    Value: !GetAtt EC2InstanceWorker1.PrivateIp
+
+  PublicIpWorker2:
+    Description: EC2 Instance Worker2 Public Ip
+    Value: !GetAtt EC2InstanceWorker2.PublicIp
+
+  PrivateIpWorker2:
+    Description: EC2 Instance Worker2 Private Ip
+    Value: !GetAtt EC2InstanceWorker2.PrivateIp
