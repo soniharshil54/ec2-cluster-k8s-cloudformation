@@ -81,6 +81,10 @@ Reference: https://www.mirantis.com/blog/how-to-install-cri-dockerd-and-migrate-
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --cri-socket=unix:///var/run/cri-dockerd.sock
 ```
 you will get the joining command as output of this command. save it at a safe place for later use.
+output example:
+```
+sudo kubeadm join 10.0.1.207:6443 --token 5dhogn.cboi55mdxh42hhjd --discovery-token-ca-cert-hash sha256:a1dd325ab9e6d4269f9b2549a9a2de2c4dfd00b9b4f02386c5e7147be6e6e421
+```
 
 12. Create Kubernetes Config as advised
 ```
@@ -115,7 +119,11 @@ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documen
 
 1. Follow step 1 to 10 from Master Node setup ( till cri-dockerd container run tie setup )
 
-2. Run joining command from the step 11 of Master node setup.
+2. Run joining command from the step 11 of Master node setup. (append `--cri-socket=unix:///var/run/cri-dockerd.sock` after join command and run with sudo)
+example:
+```
+sudo kubeadm join 10.0.1.207:6443 --token 5dhogn.cboi55mdxh42hhjd --discovery-token-ca-cert-hash sha256:a1dd325ab9e6d4269f9b2549a9a2de2c4dfd00b9b4f02386c5e7147be6e6e421 --cri-socket=unix:///var/run/cri-dockerd.sock
+```
 
 ## Run a simple nginx app for testing cluster setup
 
