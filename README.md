@@ -4,12 +4,12 @@
 
 ### Create stack
 ```
-aws cloudformation create-stack --stack-name ec2-cluster-k8s --template-body file://cf-template.yml  --profile <AWS_PROFILE_NAME>
+aws cloudformation create-stack --stack-name ec2-cluster-k8s --template-body file://cf-template.yml  --profile <AWS_PROFILE_NAME> --parameters ParameterKey=MasterUserData,ParameterValue=$(base64 -w0 master-node-setup.sh) ParameterKey=WorkerUserData,ParameterValue=$(base64 -w0 worker-node-setup.sh)
 ```
 
 ### Update Stack
 ```
-aws cloudformation update-stack --stack-name ec2-cluster-k8s --template-body file://cf-template.yml  --profile <AWS_PROFILE_NAME>
+aws cloudformation update-stack --stack-name ec2-cluster-k8s --template-body file://cf-template.yml  --profile <AWS_PROFILE_NAME> --parameters ParameterKey=MasterUserData,ParameterValue=$(base64 -w0 master-node-setup.sh) ParameterKey=WorkerUserData,ParameterValue=$(base64 -w0 worker-node-setup.sh)
 ```
 
 ### Delete Stack

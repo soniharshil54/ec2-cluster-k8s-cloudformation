@@ -1,3 +1,13 @@
+#!/bin/bash
+
+sudo -u ubuntu -i <<'EOFUBUNTU'
+
+sudo apt update	
+sudo apt install apache2 -y
+apache2 -version
+sudo systemctl status apache2 
+echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html
+
 sudo apt install -y apt-transport-https curl
 
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
@@ -69,3 +79,5 @@ sudo sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd
 sudo systemctl daemon-reload
 sudo systemctl enable cri-docker.service
 sudo systemctl enable --now cri-docker.socket
+
+EOFUBUNTU

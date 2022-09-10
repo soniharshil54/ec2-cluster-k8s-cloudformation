@@ -3,6 +3,13 @@ Description: >-
   This template deploys a VPC, with a pair of public and private subnets spread
   across two Availability Zones. It deploys an internet gateway, with a default
   route on the public subnets, a Linux t2.micro Instance with Security Group with open HTTP access. 
+Parameters:
+  MasterUserData:
+    Type: String
+    Default: ""
+  WorkerUserData:
+    Type: String
+    Default: "" 
 Mappings:
   RegionMap:
     us-east-2:
@@ -140,14 +147,7 @@ Resources:
          Value: Shark EC2 Master
        - Key: Role
          Value: Master
-      UserData:
-        Fn::Base64: !Sub |
-            #!/bin/bash
-            sudo apt update	
-            sudo apt install apache2 -y
-            apache2 -version
-            sudo systemctl status apache2 
-            echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html
+      UserData: !Ref MasterUserData
 
   EC2InstanceWorker1:
     Type: AWS::EC2::Instance
@@ -163,14 +163,7 @@ Resources:
          Value: Shark EC2 Worker 1
        - Key: Role
          Value: Worker   
-      UserData:
-        Fn::Base64: !Sub |
-            #!/bin/bash
-            sudo apt update	
-            sudo apt install apache2 -y
-            apache2 -version
-            sudo systemctl status apache2  
-            echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html
+      UserData: !Ref WorkerUserData
 
   EC2InstanceWorker2:
     Type: AWS::EC2::Instance
@@ -186,14 +179,8 @@ Resources:
          Value: Shark EC2 Worker 2
        - Key: Role
          Value: Worker   
-      UserData:
-        Fn::Base64: !Sub |
-            #!/bin/bash
-            sudo apt update	
-            sudo apt install apache2 -y
-            apache2 -version
-            sudo systemctl status apache2  
-            echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html                    
+      UserData: !Ref WorkerUserData
+
 Outputs:
   PublicIpMaster:
     Description: EC2 Instance Master Public Ip

@@ -1,3 +1,13 @@
+#!/bin/bash
+
+sudo -u ubuntu -i <<'EOFUBUNTU'
+
+sudo apt update	
+sudo apt install apache2 -y
+apache2 -version
+sudo systemctl status apache2 
+echo "<html><body><h1>Hello Cloud from Region ${AWS::Region}<h1></body></html>" > /var/www/html/index.html
+
 sudo apt install -y apt-transport-https curl
 
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
@@ -67,15 +77,16 @@ sudo systemctl daemon-reload
 sudo systemctl enable cri-docker.service
 sudo systemctl enable --now cri-docker.socket
 
-
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --cri-socket=unix:///var/run/cri-dockerd.sock
 
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+sudo chown 1000:1000 $HOME/.kube/config
 
 sudo ufw allow 6443
 sudo ufw allow 6443/tcp
 
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+
+EOFUBUNTU
